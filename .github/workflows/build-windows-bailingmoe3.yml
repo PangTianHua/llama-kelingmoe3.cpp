@@ -31,7 +31,7 @@ jobs:
           cuda-version: ${{ matrix.cuda }}
 
       - name: Install Ninja
-        shell: pwsh
+        shell: cmd
         run: choco install ninja -y
 
       - name: Add MSBuild to PATH
@@ -40,13 +40,14 @@ jobs:
       - name: Build (CUDA 12.4, win-x64)
         shell: pwsh
         run: |
-          cmake -S . -B build -G "Ninja Multi-Config" `
-            -DLLAMA_BUILD_SERVER=ON `
-            -DLLAMA_BUILD_BORINGSSL=ON `
-            -DGGML_NATIVE=OFF `
-            -DGGML_CPU_ALL_VARIANTS=OFF `
-            -DGGML_CUDA=ON `
-            -DGGML_RPC=ON `
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+          cmake -S . -B build -G "Ninja Multi-Config" ^
+            -DLLAMA_BUILD_SERVER=ON ^
+            -DLLAMA_BUILD_BORINGSSL=ON ^
+            -DGGML_NATIVE=OFF ^
+            -DGGML_CPU_ALL_VARIANTS=OFF ^
+            -DGGML_CUDA=ON ^
+            -DGGML_RPC=ON ^
             -DGGML_CUDA_CUB_3DOT2=ON
           cmake --build build --config Release
 
