@@ -1,0 +1,74 @@
+name: Build Windows BailingMoE3
+
+on:
+  workflow_dispatch:
+
+env:
+  GGML_NLOOP: 3
+  GGML_N_THREADS: 1
+  LLAMA_ARG_LOG_COLORS: 1
+  LLAMA_ARG_LOG_PREFIX: 1
+  LLAMA_ARG_LOG_TIMESTAMPS: 1
+
+jobs:
+  cuda:
+    runs-on: windows-2022
+    permissions:
+      actions: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        cuda: ['12.4']
+
+    steps:
+      - name: Clone
+        uses: actions/checkout@v4
+
+      - name: Install CUDA Toolkit ${{ matrix.cuda }}
+        uses: Jimver/cuda-toolkit@v0.2.16
+        with:
+          cuda-version: ${{ matrix.cuda }}
+
+      - name: Install Ninja
+        shell: pwsh
+        run: choco install ninja -y
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build (CUDA 12.4, win-x64)
+        shell: pwsh
+        run: |
+          cmake -S . -B build -G "Ninja Multi-Config" `
+            -DLLAMA_BUILD_SERVER=ON `
+            -DLLAMA_BUILD_BORINGSSL=ON `
+            -DGGML_NATIVE=OFF `
+            -DGGML_BACKEND_DL=ON `
+            -DGGML_CPU_ALL_VARIANTS=ON `
+            -DGGML_CUDA=ON `
+            -DGGML_RPC=ON `
+            -DGGML_CUDA_CUB_3DOT2=ON
+          cmake --build build --config Release
+
+      - name: Pack release (zip with CUDA runtime DLLs)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $out = "llama-bailingmoe3-cuda${{ matrix.cuda }}-bin-win-x64"
+          New-Item -ItemType Directory -Path $out | Out-Null
+          Copy-Item -Path build/bin/Release/*.exe -Destination $out
+          # 把 CUDA runtime DLL 也带上（用户机器需要）
+          $cudaPath = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v${{ matrix.cuda }}\bin"
+          if (Test-Path $cudaPath) {
+            Get-ChildItem $cudaPath -Filter *.dll | Copy-Item -Destination $out
+          }
+          Compress-Archive -Path $out -DestinationPath "$out.zip"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: llama-bailingmoe3-cuda${{ matrix.cuda }}-bin-win-x64
+          path: llama-bailingmoe3-cuda${{ matrix.cuda }}-bin-win-x64.zip
+          if-no-files-found: error
+          retention-days: 90
