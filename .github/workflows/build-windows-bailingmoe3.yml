@@ -44,7 +44,6 @@ jobs:
             -DLLAMA_BUILD_SERVER=ON `
             -DLLAMA_BUILD_BORINGSSL=ON `
             -DGGML_NATIVE=OFF `
-            -DGGML_BACKEND_DL=ON `
             -DGGML_CPU_ALL_VARIANTS=ON `
             -DGGML_CUDA=ON `
             -DGGML_RPC=ON `
