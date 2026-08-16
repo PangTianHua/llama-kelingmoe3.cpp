@@ -29,7 +29,12 @@ jobs:
         uses: Jimver/cuda-toolkit@v0.2.16
         with:
           cuda-version: ${{ matrix.cuda }}
-
+          
+      - name: ccache
+        uses: ggml-org/ccache-action@v1.2.21
+        with:
+          key: release-windows-2022-x64-cuda-${{ matrix.cuda }}
+          
       - name: Install Ninja
         shell: pwsh
         run: choco install ninja -y
@@ -47,6 +52,7 @@ jobs:
             -DGGML_NATIVE=OFF ^
             -DGGML_CPU_ALL_VARIANTS=OFF ^
             -DGGML_CUDA=ON ^
+            -DCMAKE_CUDA_ARCHITECTURES=75 ^
             -DGGML_RPC=ON ^
             -DGGML_CUDA_CUB_3DOT2=ON
           cmake --build build --config Release
