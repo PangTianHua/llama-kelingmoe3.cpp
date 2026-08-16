@@ -64,6 +64,7 @@ jobs:
           $out = "llama-bailingmoe3-cuda${{ matrix.cuda }}-bin-win-x64"
           New-Item -ItemType Directory -Path $out | Out-Null
           Copy-Item -Path build/bin/Release/*.exe -Destination $out
+          Get-ChildItem -Path build/bin/Release -Filter *.dll -ErrorAction SilentlyContinue | Copy-Item -Destination $out
           # 把 CUDA runtime DLL 也带上（用户机器需要）
           $cudaPath = "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v${{ matrix.cuda }}\bin"
           if (Test-Path $cudaPath) {
