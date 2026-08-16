@@ -31,14 +31,14 @@ jobs:
           cuda-version: ${{ matrix.cuda }}
 
       - name: Install Ninja
-        shell: cmd
+        shell: pwsh
         run: choco install ninja -y
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
 
       - name: Build (CUDA 12.4, win-x64)
-        shell: pwsh
+        shell: cmd
         run: |
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
           cmake -S . -B build -G "Ninja Multi-Config" ^
